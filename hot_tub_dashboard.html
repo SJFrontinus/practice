@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hot Tub Evaporation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, hsl(229, 72%, 62%) 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .input-value {
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: none;
+        }
+
+        .results {
+            grid-column: 1 / -1;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-card .value {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .result-card .unit {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .visual-indicator {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .visual-indicator h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .water-level-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid #667eea;
+        }
+
+        .water-level {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #0077be, #00b4d8);
+            transition: height 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .multipliers {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .multiplier-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .multiplier-box .label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .multiplier-box .value {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .header p {
+                font-size: 0.95em;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .panel {
+                padding: 20px;
+            }
+
+            .panel h2 {
+                font-size: 1.3em;
+            }
+
+            .input-group {
+                margin-bottom: 20px;
+            }
+
+            .input-label {
+                font-size: 0.95em;
+            }
+
+            .input-value {
+                font-size: 1em;
+            }
+
+            /* Better touch targets for sliders on mobile */
+            input[type="range"] {
+                height: 10px;
+            }
+
+            input[type="range"]::-webkit-slider-thumb {
+                width: 24px;
+                height: 24px;
+            }
+
+            input[type="range"]::-moz-range-thumb {
+                width: 24px;
+                height: 24px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .result-card {
+                padding: 15px;
+            }
+
+            .result-card .value {
+                font-size: 2em;
+            }
+
+            .multipliers {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .water-level-container {
+                height: 150px;
+            }
+
+            .water-level {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💧 Hot Tub Evaporation Dashboard</h1>
+            <p>Adjust parameters to estimate daily water loss</p>
+        </div>
+
+        <div class="dashboard">
+            <!-- Hot Tub Specifications Panel -->
+            <div class="panel">
+                <h2>🛁 Hot Tub Specifications</h2>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <span>Diameter</span>
+                        <span class="input-value"><span id="diameter-value">12</span> ft</span>
+                    </div>
+                    <input type="range" id="diameter" min="4" max="20" step="0.5" value="12">
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <span>Water Temperature</span>
+                        <span class="input-value"><span id="water-temp-value">102</span> °F</span>
+                    </div>
+                    <input type="range" id="water-temp" min="80" max="110" step="1" value="102">
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <span>Exposure Hours/Day</span>
+                        <span class="input-value"><span id="exposure-value">14</span> hrs</span>
+                    </div>
+                    <input type="range" id="exposure" min="0" max="24" step="1" value="14">
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <span>Churn Area (Jets Agitation)</span>
+                        <span class="input-value"><span id="churn-value">25</span>%</span>
+                    </div>
+                    <input type="range" id="churn" min="0" max="100" step="5" value="25">
+                </div>
+            </div>
+
+            <!-- Environmental Conditions Panel -->
+            <div class="panel">
+                <h2>🌤️ Environmental Conditions</h2>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <span>Air Temperature</span>
+                        <span class="input-value"><span id="air-temp-value">70</span> °F</span>
+                    </div>
+                    <input type="range" id="air-temp" min="0" max="110" step="1" value="70">
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <span>Relative Humidity</span>
+                        <span class="input-value"><span id="humidity-value">35</span>%</span>
+                    </div>
+                    <input type="range" id="humidity" min="5" max="95" step="5" value="35">
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        <span>Wind Speed</span>
+                        <span class="input-value"><span id="wind-value">5</span> mph</span>
+                    </div>
+                    <input type="range" id="wind" min="0" max="30" step="1" value="5">
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="panel results">
+                <h2>📊 Evaporation Estimates</h2>
+
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>Daily Water Loss</h3>
+                        <div class="value" id="gallons-per-day">0</div>
+                        <div class="unit">gallons/day</div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>Water Level Drop</h3>
+                        <div class="value" id="inches-per-day">0</div>
+                        <div class="unit">inches/day</div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>Weekly Loss</h3>
+                        <div class="value" id="weekly-loss">0</div>
+                        <div class="unit">gallons/week</div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>Monthly Loss</h3>
+                        <div class="value" id="monthly-loss">0</div>
+                        <div class="unit">gallons/month</div>
+                    </div>
+                </div>
+
+                <div class="multipliers">
+                    <div class="multiplier-box">
+                        <div class="label">Wind Effect</div>
+                        <div class="value" id="wind-multiplier">1.00x</div>
+                    </div>
+                    <div class="multiplier-box">
+                        <div class="label">Agitation Effect</div>
+                        <div class="value" id="agitation-multiplier">1.00x</div>
+                    </div>
+                    <div class="multiplier-box">
+                        <div class="label">Exposure Time</div>
+                        <div class="value" id="exposure-multiplier">1.00x</div>
+                    </div>
+                </div>
+
+                <div class="visual-indicator">
+                    <h3>📉 Daily Water Level Change</h3>
+                    <div class="water-level-container">
+                        <div class="water-level" id="water-visual">
+                            <span id="water-visual-text">100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vapor pressure calculation using Antoine equation
+        function vaporPressureMMHg(tempF) {
+            const tempC = (tempF - 32) * 5 / 9;
+            const A = 8.07131, B = 1730.63, C = 233.426;
+            const logP = A - (B / (C + tempC));
+            return Math.pow(10, logP);
+        }
+
+        // Main calculation function
+        function calculateEvaporation() {
+            try {
+                // Get input values with fallbacks
+                const diameter = parseFloat(document.getElementById('diameter').value) || 12;
+                const waterTemp = parseFloat(document.getElementById('water-temp').value) || 102;
+                const airTemp = parseFloat(document.getElementById('air-temp').value) || 70;
+                const humidity = parseFloat(document.getElementById('humidity').value) || 35;
+                const windSpeed = parseFloat(document.getElementById('wind').value) || 5;
+                const exposureHours = parseFloat(document.getElementById('exposure').value) || 14;
+                const churnPercent = parseFloat(document.getElementById('churn').value) || 25;
+
+                console.log('Input values:', { diameter, waterTemp, airTemp, humidity, windSpeed, exposureHours, churnPercent });
+
+            // Calculate surface area
+            const radius = diameter / 2;
+            const surfaceArea = Math.PI * radius * radius; // square feet
+
+            // Calculate vapor pressures
+            const pwWater = vaporPressureMMHg(waterTemp);
+            const pwAir = vaporPressureMMHg(airTemp);
+            const paAir = pwAir * (humidity / 100);
+            const vpDeficit = pwWater - paAir;
+
+            // Base evaporation rate (modified for hot tubs)
+            // Using higher k for hot water: 0.003 inches/day per mmHg
+            const kBase = 0.003;
+            const baseEvapInches = kBase * vpDeficit;
+
+            // Wind multiplier
+            const windMultiplier = 1 + (windSpeed * 0.04);
+
+            // Agitation multiplier
+            const churnFraction = churnPercent / 100;
+            const stillFraction = 1 - churnFraction;
+            const churnMultiplier = 2.0;
+            const agitationMultiplier = (stillFraction * 1.0) + (churnFraction * churnMultiplier);
+
+            // Exposure fraction
+            const exposureFraction = exposureHours / 24;
+
+            // Combined evaporation rate
+            const evapInchesPerDay = baseEvapInches * windMultiplier * agitationMultiplier * exposureFraction;
+
+            // Convert to gallons
+            const volumeCubicFeet = surfaceArea * (evapInchesPerDay / 12);
+            const gallonsPerDay = volumeCubicFeet * 7.48;
+
+            // Update results
+            document.getElementById('gallons-per-day').textContent = gallonsPerDay.toFixed(1);
+            document.getElementById('inches-per-day').textContent = evapInchesPerDay.toFixed(3);
+            document.getElementById('weekly-loss').textContent = (gallonsPerDay * 7).toFixed(0);
+            document.getElementById('monthly-loss').textContent = (gallonsPerDay * 30).toFixed(0);
+
+            // Update multipliers
+            document.getElementById('wind-multiplier').textContent = windMultiplier.toFixed(2) + 'x';
+            document.getElementById('agitation-multiplier').textContent = agitationMultiplier.toFixed(2) + 'x';
+            document.getElementById('exposure-multiplier').textContent = exposureFraction.toFixed(2) + 'x';
+
+            // Update visual indicator (showing remaining water after 1 day)
+            const percentRemaining = Math.max(0, 100 - (evapInchesPerDay * 10)); // Scaled for visibility
+            const waterLevel = document.getElementById('water-visual');
+            waterLevel.style.height = percentRemaining + '%';
+            document.getElementById('water-visual-text').textContent =
+                `-${evapInchesPerDay.toFixed(3)}" per day`;
+
+            console.log('Calculation complete:', { gallonsPerDay, evapInchesPerDay });
+            } catch (error) {
+                console.error('Calculation error:', error);
+                // Set default values on error
+                document.getElementById('gallons-per-day').textContent = '--';
+                document.getElementById('inches-per-day').textContent = '--';
+            }
+        }
+
+        // Update display values and recalculate
+        function setupInputHandlers() {
+            const inputs = [
+                { id: 'diameter', displayId: 'diameter-value' },
+                { id: 'water-temp', displayId: 'water-temp-value' },
+                { id: 'air-temp', displayId: 'air-temp-value' },
+                { id: 'humidity', displayId: 'humidity-value' },
+                { id: 'wind', displayId: 'wind-value' },
+                { id: 'exposure', displayId: 'exposure-value' },
+                { id: 'churn', displayId: 'churn-value' }
+            ];
+
+            inputs.forEach(input => {
+                const element = document.getElementById(input.id);
+                const display = document.getElementById(input.displayId);
+
+                element.addEventListener('input', function() {
+                    display.textContent = this.value;
+                    calculateEvaporation();
+                });
+            });
+        }
+
+        // Initialize when DOM is fully loaded (important for Safari/iPhone)
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing...');
+
+            // Small delay for iOS Safari to ensure input values are ready
+            setTimeout(function() {
+                // Set initial display values
+                document.getElementById('diameter-value').textContent = document.getElementById('diameter').value;
+                document.getElementById('water-temp-value').textContent = document.getElementById('water-temp').value;
+                document.getElementById('air-temp-value').textContent = document.getElementById('air-temp').value;
+                document.getElementById('humidity-value').textContent = document.getElementById('humidity').value;
+                document.getElementById('wind-value').textContent = document.getElementById('wind').value;
+                document.getElementById('exposure-value').textContent = document.getElementById('exposure').value;
+                document.getElementById('churn-value').textContent = document.getElementById('churn').value;
+
+                // Setup handlers and calculate
+                setupInputHandlers();
+                calculateEvaporation();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
