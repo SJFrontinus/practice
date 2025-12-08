@@ -412,6 +412,63 @@
             isPressed = false;
         }
 
+        // Emoji-to-emoji collision detection
+        function resolveEmojiCollisions() {
+            for (let i = 0; i < emojis.length; i++) {
+                for (let j = i + 1; j < emojis.length; j++) {
+                    const emojiA = emojis[i];
+                    const emojiB = emojis[j];
+
+                    // Calculate distance between centers
+                    const dx = emojiB.x - emojiA.x;
+                    const dy = emojiB.y - emojiA.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // Calculate minimum distance (sum of radii)
+                    const minDistance = (emojiA.size + emojiB.size) / 2;
+
+                    // Check if emojis are overlapping
+                    if (distance < minDistance && distance > 0) {
+                        // Calculate overlap amount
+                        const overlap = minDistance - distance;
+
+                        // Normalize the direction vector
+                        const nx = dx / distance;
+                        const ny = dy / distance;
+
+                        // Separate the emojis by half the overlap each
+                        const separationX = nx * overlap * 0.5;
+                        const separationY = ny * overlap * 0.5;
+
+                        emojiA.x -= separationX;
+                        emojiA.y -= separationY;
+                        emojiB.x += separationX;
+                        emojiB.y += separationY;
+
+                        // Calculate relative velocity
+                        const relativeVx = emojiB.vx - emojiA.vx;
+                        const relativeVy = emojiB.vy - emojiA.vy;
+
+                        // Calculate relative velocity in collision normal direction
+                        const velocityAlongNormal = relativeVx * nx + relativeVy * ny;
+
+                        // Only resolve if emojis are moving towards each other
+                        if (velocityAlongNormal < 0) {
+                            // Simple elastic collision with damping
+                            const restitution = 0.5; // Bounciness factor
+                            const impulse = velocityAlongNormal * restitution;
+
+                            // Apply impulse to velocities
+                            emojiA.vx += impulse * nx;
+                            emojiA.vy += impulse * ny;
+                            emojiB.vx -= impulse * nx;
+                            emojiB.vy -= impulse * ny;
+                        }
+                    }
+                }
+            }
+        }
+
         // Pointer events (unified for mouse and touch)
         function handlePointerDown(e) {
             e.preventDefault();
@@ -472,9 +529,16 @@
                 }
             }
 
-            // Update and draw all emojis
+            // Update all emojis
             for (const emoji of emojis) {
                 emoji.update();
+            }
+
+            // Resolve collisions between emojis
+            resolveEmojiCollisions();
+
+            // Draw all emojis
+            for (const emoji of emojis) {
                 emoji.draw();
             }
 
