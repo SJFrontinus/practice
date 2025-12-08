@@ -98,8 +98,12 @@
 
         // Responsive canvas sizing
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            // Get the computed border width dynamically
+            const computedStyle = window.getComputedStyle(canvas);
+            const borderWidth = parseInt(computedStyle.borderLeftWidth) + parseInt(computedStyle.borderRightWidth);
+            const borderHeight = parseInt(computedStyle.borderTopWidth) + parseInt(computedStyle.borderBottomWidth);
+            canvas.width = window.innerWidth - borderWidth;
+            canvas.height = window.innerHeight - borderHeight;
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
